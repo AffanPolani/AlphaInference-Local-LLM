@@ -1,0 +1,54 @@
+# ============================================================
+# AlphaInference local/dev ignores
+# Keep source + docs in git, ignore runtime artifacts/config/state.
+# ============================================================
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+
+# Python cache/artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments / secrets / config
+.env
+.env.*
+*.env
+*.local
+*.ini
+*.toml.local
+*.secrets
+
+# Logs / temp / partial downloads
+*.log
+*.tmp
+*.temp
+*.partial
+.partial.httpcode
+
+# Runtime/generated application data
+chat_history/
+generated_images/
+
+# Heavy runtimes and model assets
+vendor/
+models/
+ollama/
+
+# Optional local build/cache folders
+temp/
+.cache/
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+/.vs
+/.vs
