@@ -814,7 +814,7 @@ def generate_image():
                         break
 
     if not model_path and image_dir.exists():
-        for ext in ("*.safetensors", "*.ckpt"):
+        for ext in ("*.safetensors", "*.ckpt", "*.gguf"):
             hits = [f for f in image_dir.glob(ext)
                     if f.is_file() and not is_partial_file(f)]
             if hits:
@@ -827,6 +827,17 @@ def generate_image():
     ts       = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_fn   = f"img_{ts}_{uuid.uuid4().hex[:8]}.png"
     out_path = IMAGE_OUTPUT_DIR / out_fn
+
+    # FLUX GGUF models require cfg_scale=1.0 and euler sampler.
+    # Detect by extension and common name patterns.
+    _model_name_lower = Path(model_path).name.lower()
+    _is_flux_gguf = (
+        model_path.lower().endswith(".gguf")
+        and ("flux" in _model_name_lower)
+    )
+    if _is_flux_gguf:
+        cfg_scale     = 1.0
+        sample_method = "euler"
 
     cmd = [
         str(SD_EXE),

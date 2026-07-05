@@ -742,8 +742,8 @@ echo  Enter HuggingFace repo:
 echo    Example: TheBloke/Llama-2-7B-GGUF
 echo.
 echo  Destinations:
-echo    .gguf / .bin / .pt  -> models\chat\
-echo    .safetensors        -> models\image\
+echo    .gguf / .bin / .pt  -^> models\chat\
+echo    .safetensors        -^> models\image\
 echo.
 set "hf_input="
 set /p "hf_input=  Repo ID or URL ^(or 'back'^): "
@@ -817,13 +817,47 @@ echo.
 if not defined DLPATH (
     echo  [FAIL] Could not read result path.
 ) else (
-    echo "!DLFN!" | findstr /i "\.gguf \.bin \.pt" >nul 2>&1
+    echo "!DLFN!" | findstr /i "\.gguf" >nul 2>&1
     if not errorlevel 1 (
-        echo  [OK] Saved to: models\chat\
-        echo  Use option [4] to register with Ollama.
+        :: GGUF downloaded - detect architecture to confirm correct folder
+        if exist "%PYTHON_DIR%\python.exe" if exist "%BASE_DIR%gguf_detect.py" (
+            echo  [*] Detecting GGUF model type from header ...
+            set "_GD_ARCH=unknown"
+            set "_GD_TYPE=unknown"
+            "%PYTHON_DIR%\python.exe" "%BASE_DIR%gguf_detect.py" "!DLPATH!" > "%TEMP_DIR%\_gguf_det.txt" 2>nul
+            for /f "usebackq tokens=1,2 delims==" %%A in ("%TEMP_DIR%\_gguf_det.txt") do (
+                if "%%A"=="arch" set "_GD_ARCH=%%B"
+                if "%%A"=="type" set "_GD_TYPE=%%B"
+            )
+            del "%TEMP_DIR%\_gguf_det.txt" 2>nul
+            echo  [*] Architecture: !_GD_ARCH!  Type: !_GD_TYPE!
+            if /i "!_GD_TYPE!"=="image" (
+                set "_IMG_MOVE=%MODELS_DIR%\image\!DLFN!"
+                move "!DLPATH!" "!_IMG_MOVE!" >nul 2>&1
+                if errorlevel 1 (
+                    echo  [WARN] Could not move to models\image\ - file stays in models\chat\
+                    echo  [OK] Saved to: models\chat\
+                ) else (
+                    echo  [OK] Moved to: models\image\
+                    echo  Available in Image generation dropdown.
+                )
+            ) else (
+                echo  [OK] Saved to: models\chat\
+                echo  Use option [4] to register with Ollama.
+            )
+        ) else (
+            echo  [OK] Saved to: models\chat\
+            echo  Use option [4] to register with Ollama.
+        )
     ) else (
-        echo  [OK] Saved to: models\image\
-        echo  Available in Image dropdown.
+        echo "!DLFN!" | findstr /i "\.bin \.pt" >nul 2>&1
+        if not errorlevel 1 (
+            echo  [OK] Saved to: models\chat\
+            echo  Use option [4] to register with Ollama.
+        ) else (
+            echo  [OK] Saved to: models\image\
+            echo  Available in Image dropdown.
+        )
     )
 )
 
@@ -845,8 +879,8 @@ echo  ==========================================================
 echo.
 echo  Supported: .gguf  .bin  .pt  .safetensors  .ckpt
 echo.
-echo   [1] Chat model   ^(.gguf / .bin / .pt^)  -> models\chat\
-echo   [2] Image model  ^(.safetensors / .ckpt^) -> models\image\
+echo   [1] Chat model   ^(.gguf / .bin / .pt^)  -^> models\chat\
+echo   [2] Image model  ^(.safetensors / .ckpt^) -^> models\image\
 echo   [3] Back
 echo.
 set "imp_type="
@@ -862,7 +896,7 @@ if "!imp_type!"=="1" (
 ) else (
     set "IMP_DEST=%MODELS_DIR%\image"
     set "IMP_LABEL=Image"
-    set "IMP_VALID_EXTS=.safetensors .ckpt"
+    set "IMP_VALID_EXTS=.safetensors .ckpt .gguf"
 )
 
 echo.
@@ -1585,8 +1619,19 @@ if not exist "%OLLAMA_DIR%\ollama.exe" echo  [WARN] Ollama not installed.
 call :ENSURE_OLLAMA
 echo.
 echo  [*] Starting server ...
+echo.
+set "_SC_LAN="
+set /p "_SC_LAN=  Make this app discoverable over the network? [y/n]: "
+if /I "!_SC_LAN!"=="y" (
+    set "ALPHA_EXPOSE_LAN=1"
+    echo  [*] Network access enabled.
+) else (
+    set "ALPHA_EXPOSE_LAN=0"
+    echo  [*] Local-only mode.
+)
+echo.
 if exist "%BASE_DIR%start_chat.bat" (
-    start "" "%BASE_DIR%start_chat.bat"
+    start "" cmd /c "set ALPHA_EXPOSE_LAN=!ALPHA_EXPOSE_LAN! && "%BASE_DIR%start_chat.bat""
 ) else (
     start "" "%PYTHON_DIR%\python.exe" "%BASE_DIR%chat_server.py"
 )

@@ -14,11 +14,31 @@ set "PS_EXE="
 where powershell.exe >nul 2>&1 && set "PS_EXE=powershell.exe"
 if not defined PS_EXE where pwsh.exe >nul 2>&1 && set "PS_EXE=pwsh.exe"
 
-if not defined ALPHA_EXPOSE_LAN set "ALPHA_EXPOSE_LAN=0"
 if not defined ALPHA_RESTART_OLLAMA set "ALPHA_RESTART_OLLAMA=0"
+
+:: If ALPHA_EXPOSE_LAN was not set by a parent process, ask the user.
+if not defined ALPHA_EXPOSE_LAN (
+    cls
+    echo.
+    echo  +----------------------------------------------------------+
+    echo  ^|         AlphaInference - Chat Server                     ^|
+    echo  +----------------------------------------------------------+
+    echo.
+    echo   Make this application discoverable over the network?
+    echo   Other devices on your LAN will be able to open the Chat UI.
+    echo.
+    set "_SC_LAN="
+    set /p "_SC_LAN=  Allow network access? [y/n]: "
+    if /I "!_SC_LAN!"=="y" (
+        set "ALPHA_EXPOSE_LAN=1"
+    ) else (
+        set "ALPHA_EXPOSE_LAN=0"
+    )
+)
+call :APPLY_LAN_SETTING
 set "SERVER_BIND_HOST=127.0.0.1"
 set "SERVER_UI_HOST=127.0.0.1"
-if /I "%ALPHA_EXPOSE_LAN%"=="1" (
+if /I "!ALPHA_EXPOSE_LAN!"=="1" (
     set "SERVER_BIND_HOST=0.0.0.0"
     if defined PS_EXE (
         for /f "usebackq delims=" %%I in (`"!PS_EXE!" -NoProfile -Command "$ip=Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*'} | Select-Object -First 1 -ExpandProperty IPAddress; if($ip){$ip}" 2^>nul`) do set "SERVER_UI_HOST=%%I"
@@ -308,4 +328,36 @@ if exist "%_OUT%" del "%_OUT%" 2>nul
 >>"%_OUT%" echo   ^)
 >>"%_OUT%" echo ^)
 >>"%_OUT%" echo if "!_OPENED!"=="0" start %LOCAL_URL%
+exit /b 0
+
+:: ============================================================
+:: SUBROUTINE: Apply LAN setting
+:: Adds or removes Windows Firewall inbound rule for the
+:: chat server port when network access is toggled.
+:: Requires elevation for netsh; silently skips if denied.
+:: ============================================================
+:APPLY_LAN_SETTING
+set "_FW_RULE=AlphaInference Chat Server"
+if /I "!ALPHA_EXPOSE_LAN!"=="1" (
+    echo.
+    echo  [*] Network access enabled - configuring firewall ...
+    netsh advfirewall firewall show rule name="!_FW_RULE!" >nul 2>&1
+    if errorlevel 1 (
+        netsh advfirewall firewall add rule name="!_FW_RULE!" dir=in action=allow protocol=TCP localport=%SERVER_PORT% >nul 2>&1
+        if errorlevel 1 (
+            echo  [WARN] Could not add firewall rule ^(run as Administrator to allow LAN access^).
+        ) else (
+            echo  [OK] Firewall rule added for port %SERVER_PORT%.
+        )
+    ) else (
+        echo  [OK] Firewall rule already exists for port %SERVER_PORT%.
+    )
+) else (
+    :: Silently remove rule if it exists when switching back to local-only
+    netsh advfirewall firewall show rule name="!_FW_RULE!" >nul 2>&1
+    if not errorlevel 1 (
+        netsh advfirewall firewall delete rule name="!_FW_RULE!" >nul 2>&1
+        echo  [OK] Firewall rule removed ^(local-only mode^).
+    )
+)
 exit /b 0
