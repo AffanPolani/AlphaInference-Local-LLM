@@ -61,6 +61,8 @@ set "HEALTH_URL=%LOCAL_URL%/api/health"
 set "OLLAMA_MODELS=%BASE_DIR%models\ollama"
 set "OLLAMA_HOME=%VENDOR_DIR%\ollama_home"
 set "OLLAMA_HOST=127.0.0.1:11434"
+set "OLLAMA_KV_CACHE_TYPE=q8_0"
+set "SD_WEIGHT_TYPE=f16"
 
 if not exist "%OLLAMA_MODELS%" mkdir "%OLLAMA_MODELS%"
 if not exist "%OLLAMA_HOME%"   mkdir "%OLLAMA_HOME%"

@@ -40,6 +40,7 @@ CHAT_HISTORY_DIR = BASE_DIR   / "chat_history"
 OLLAMA_EXE = OLLAMA_DIR / "ollama.exe"
 OLLAMA_MODELS_DIR = MODELS_DIR / "ollama"
 OLLAMA_HOME_DIR = VENDOR_DIR / "ollama_home"
+SD_WEIGHT_TYPE = os.environ.get("SD_WEIGHT_TYPE", "f16")
 
 
 def _find_sd_exe():
@@ -59,8 +60,8 @@ SERVER_BIND_HOST = "0.0.0.0" if _host_raw in {"0.0.0.0", "*", "all"} else (_host
 SERVER_PORT = int(os.environ.get("ALPHA_SERVER_PORT", "5000") or "5000")
 
 MAX_CHAT_MESSAGES = 80
-MAX_CHAT_TOTAL_CHARS = 50000
-MAX_CHAT_MESSAGE_CHARS = 8000
+MAX_CHAT_TOTAL_CHARS = 200000
+MAX_CHAT_MESSAGE_CHARS = 32000
 MAX_IMAGE_PROMPT_CHARS = 2000
 MAX_IMAGE_NEGATIVE_PROMPT_CHARS = 2000
 
@@ -145,6 +146,7 @@ def start_ollama() -> bool:
     env["OLLAMA_HOST"] = "127.0.0.1:11434"
     env["OLLAMA_MODELS"] = str(OLLAMA_MODELS_DIR)
     env["OLLAMA_HOME"] = str(OLLAMA_HOME_DIR)
+    env["OLLAMA_KV_CACHE_TYPE"]   = os.environ.get("OLLAMA_KV_CACHE_TYPE", "q8_0")
 
     OLLAMA_MODELS_DIR.mkdir(parents=True, exist_ok=True)
     OLLAMA_HOME_DIR.mkdir(parents=True, exist_ok=True)
@@ -849,6 +851,7 @@ def generate_image():
         "--cfg-scale",       str(cfg_scale),
         "-o",                str(out_path),
         "--sampling-method", str(sample_method),
+        "--type",            SD_WEIGHT_TYPE,
     ]
     if negative_prompt:
         cmd.extend(["-n", str(negative_prompt)])
