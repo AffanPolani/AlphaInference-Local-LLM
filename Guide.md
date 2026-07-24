@@ -1,9 +1,6 @@
-Here is the complete guide as a single downloadable markdown file. Save everything below as `README.md` in your AlphaInference folder.
-
-````markdown
 # AlphaInference - Complete Setup Guide
 
-A self-contained Windows toolkit for running local LLM chat, image generation, and VS Code AI assistance with zero cloud dependencies.
+A self-contained Windows toolkit for running local LLM chat, image generation, and native VS Code AI assistance with zero cloud dependencies.
 
 AlphaBridge IT Solution™
 
@@ -19,12 +16,13 @@ AlphaBridge IT Solution™
 6. [Downloading Models](#downloading-models)
 7. [Using the Chat Interface](#using-the-chat-interface)
 8. [Image Generation](#image-generation)
-9. [VS Code Integration (Continue)](#vs-code-integration-continue)
-10. [Troubleshooting](#troubleshooting)
-11. [Advanced Topics](#advanced-topics)
-12. [Architecture Reference](#architecture-reference)
-13. [Quick Command Reference](#quick-command-reference)
-14. [License & Credits](#license--credits)
+9. [AlphaBridge Copilot (VS Code Extension)](#alphabridge-copilot-vs-code-extension)
+10. [VS Code Integration (Continue)](#vs-code-integration-continue)
+11. [Troubleshooting](#troubleshooting)
+12. [Advanced Topics](#advanced-topics)
+13. [Architecture Reference](#architecture-reference)
+14. [Quick Command Reference](#quick-command-reference)
+15. [License & Credits](#license--credits)
 
 ---
 
@@ -32,34 +30,38 @@ AlphaBridge IT Solution™
 
 AlphaInference is the portable local AI toolkit distributed by AlphaBridge IT Solution™. It is designed as a self-contained Windows setup that lets you:
 
-- **Chat with LLMs locally** (Llama, Gemma, Mistral, DeepSeek Coder, etc.) via Ollama
+- **Chat with LLMs locally** (Llama, Gemma, Mistral, DeepSeek Coder, Qwen3, etc.) via Ollama
 - **Generate images locally** with Stable Diffusion variants
-- **Use VS Code AI assistance** via Continue extension pointing to your local models
+- **Use VS Code AI assistance** via the native **AlphaBridge Copilot** extension (Copilot-style sidebar, file/folder attachments, thinking model support) OR via the **Continue** extension pointing to your local models
 - **Run completely offline** after initial setup
 - **Stay portable** — entire setup lives in one folder, can be moved between PCs
 - **Work without admin rights** — no system modifications, no installs
 
 ```
-┌───────────────────────────────────────────────────────┐
-│              YOUR LOCAL MACHINE ONLY                  │
-│                                                       │
-│   ┌─────────────┐    ┌─────────────────────────┐      │
-│   │   Browser   │◄──►│  Flask Server (Python)  │      │
-│   │  port 5000  │    │      chat_server.py     │      │
-│   └─────────────┘    └────────┬────────────────┘      │
-│                               │                       │
-│                  ┌────────────┴──────────┐            │
-│                  ▼                       ▼            │
-│           ┌──────────────┐       ┌──────────────┐     │
-│           │    Ollama    │       │   sd-cli     │     │
-│           │  port 11434  │       │  (on-demand) │     │
-│           └──────┬───────┘       └──────┬───────┘     │
-│                  │                      │             │
-│                  ▼                      ▼             │
-│        models\ollama\           models\image\         │
-│        (chat models)            (.safetensors)        │
-│                                                       │
-└───────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                   YOUR LOCAL MACHINE ONLY                     │
+│                                                               │
+│   ┌─────────────┐  ┌─────────────────────────┐               │
+│   │   Browser   │◄►│  Flask Server (Python)  │               │
+│   │  port 5000  │  │      chat_server.py     │               │
+│   └─────────────┘  └────────┬────────────────┘               │
+│                             │                                 │
+│   ┌─────────────┐           │                                 │
+│   │   VS Code   │◄──────────┤ AlphaBridge Copilot extension  │
+│   │  extension  │           │ (bundled in this repo)         │
+│   └─────────────┘           │                                 │
+│                ┌────────────┴──────────┐                      │
+│                ▼                       ▼                      │
+│         ┌──────────────┐       ┌──────────────┐              │
+│         │    Ollama    │       │   sd-cli     │              │
+│         │  port 11434  │       │  (on-demand) │              │
+│         └──────┬───────┘       └──────┬───────┘              │
+│                │                      │                       │
+│                ▼                      ▼                       │
+│      models\ollama\           models\image\                  │
+│      (chat models)            (.safetensors)                 │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
          No internet required after setup
          No data leaves your computer
 ```
@@ -80,7 +82,7 @@ Windows 10 (1809+) or Windows 11. At least 8 GB RAM, ideally 16+ GB. 20 GB free 
 |----------|----------------------|----------|
 | 8 GB | 1-3 B parameters | llama3.2:1b, qwen2.5-coder:1.5b |
 | 16 GB | 3-7 B parameters | llama3.1:8b, mistral:7b |
-| 32 GB | 7-13 B parameters | llama3.1:8b, codellama:13b |
+| 32 GB | 7-13 B parameters | llama3.1:8b, codellama:13b, qwen3:8b |
 | 64+ GB | 13-70 B parameters | mixtral:8x7b, llama3.1:70b |
 
 | Your VRAM | Image Models That Fit |
@@ -95,6 +97,8 @@ The installer auto-detects your specs and only shows model options that fit. You
 ### When to Worry
 
 If you have less than 8 GB RAM, stick to 1B models. Chat will be slow but usable, and you should skip image generation entirely. Without an NVIDIA GPU, chat still works but is slower (CPU inference) and image generation takes 45-90 seconds per image — consider Ollama models in Q4 quantization only. If you have less than 20 GB disk free, pick one small model and skip image generation. If PowerShell is blocked by group policy, system info will show defaults (4 GB RAM, Unknown CPU) but everything else still works; manually verify with `powershell -Command "..."` commands shown in the [Quick Command Reference](#quick-command-reference).
+
+For the AlphaBridge Copilot VS Code extension you additionally need **Node.js LTS** (only if you plan to rebuild the extension from source). If you just install the pre-built `.vsix`, Node.js is not required.
 
 ---
 
@@ -112,6 +116,14 @@ From the menu, choose `[2] Download / Import Models`, then `[1] Recommended Mode
 
 From the main menu, choose `[4] Start Chat Server`. The browser auto-opens at `http://127.0.0.1:5000`. Select your model from the dropdown and start chatting.
 
+**Optional — install the AlphaBridge Copilot VS Code extension** to get a native Copilot-style experience inside VS Code:
+
+```cmd
+code --install-extension alphabridge-copilot-<version>.vsix
+```
+
+See [AlphaBridge Copilot (VS Code Extension)](#alphabridge-copilot-vs-code-extension) for full instructions.
+
 ---
 
 ## File Structure
@@ -125,34 +137,45 @@ AlphaInference/                         ← anywhere on disk
 ├── start_chat.bat                      ← YOU PROVIDE - launches everything
 ├── chat_server.py                      ← YOU PROVIDE - Flask backend
 ├── chatUI.html                         ← YOU PROVIDE - web interface
+├── model_manager.py                    ← multi-source model helper
 │
 ├── vendor/                             ← created by install.bat
 │   ├── python/                         ← embedded Python 3.11
-│   │   ├── python.exe
-│   │   └── Lib/site-packages/
 │   ├── ollama/
 │   │   └── ollama.exe                  ← LLM runtime
 │   ├── stable-diffusion/
 │   │   ├── sd-cli.exe                  ← image generator
 │   │   └── stable-diffusion.dll        ← required next to exe
 │   ├── ollama_home/                    ← Ollama config (portable)
-│   ├── temp/                           ← scratch space
+│   ├── temp/                           ← scratch space + lock files
 │   └── hf_cache/                       ← HuggingFace cache
 │
 ├── models/
 │   ├── ollama/                         ← Ollama model store (portable!)
 │   ├── chat/                           ← downloaded GGUF files
 │   └── image/                          ← .safetensors for SD
-│       ├── sd-v1-5.safetensors
-│       └── dreamshaper_8.safetensors
+│
 ├── chat_history/                       ← saved conversations
 │   └── *.json                          ← one file per chat session
 │
-└── generated_images/                   ← SD output
-    ├── img_20240101_120000_abc.png
-    └── img_20240101_120000_abc.json    ← sidecar metadata
-
-└── model_manager.py                    ← multi-source model import/download helper
+├── generated_images/                   ← SD output
+│   ├── img_20260101_120000_abc.png
+│   └── img_20260101_120000_abc.json    ← sidecar metadata
+│
+└── alphabridge-vscode/                 ← OPTIONAL - VS Code extension source
+    ├── package.json
+    ├── tsconfig.json
+    ├── src/
+    │   ├── extension.ts                ← activation + commands
+    │   ├── api.ts                      ← AlphaInference HTTP client
+    │   ├── contextBuilder.ts           ← file/folder → prompt logic
+    │   ├── panel.ts                    ← chat panel webview
+    │   ├── sidebar.ts                  ← activity bar sidebar
+    │   └── debug.ts                    ← Output channel logging
+    ├── media/
+    │   └── alpha-icon.svg              ← activity bar icon
+    ├── out/                            ← compiled JS (npm run compile)
+    └── alphabridge-copilot-*.vsix      ← packaged extension
 ```
 
 ---
@@ -226,11 +249,12 @@ RAM: 32 GB  VRAM: 6 GB  GPU: NVIDIA RTX A3000
 [2] codellama:13b      ~7.4 GB   Code generation
 [3] mixtral:8x7b       ~26  GB   Mixture of experts
 [4] gemma2:9b          ~5.5 GB   Google
+[5] qwen3:8b           ~5.7 GB   Reasoning model (thinking)
 
 -- Image Models --
-[5] Stable Diffusion 1.5  ~4.0 GB   Best quality
-[6] SD Turbo              ~2.0 GB   Faster
-[7] DreamShaper 8         ~2.0 GB   Better details
+[6] Stable Diffusion 1.5  ~4.0 GB   Best quality
+[7] SD Turbo              ~2.0 GB   Faster
+[8] DreamShaper 8         ~2.0 GB   Better details
 ```
 
 Pick a number and it downloads via Ollama (for chat models) or direct download (for image models).
@@ -263,6 +287,7 @@ This menu supports:
 - Hugging Face repo snapshots for multi-file models
 - Direct URL downloads with optional SHA256 verification
 - Local file or folder import
+
 When importing local models through Model Manager, the flow is now **non-destructive**:
 
 - Existing folders are not auto-deleted or overwritten
@@ -278,7 +303,13 @@ Expected local inputs by task:
 
 ### Recommended Models by Use Case
 
-For general chat, try `llama3.1:8b` (best balance of speed and quality), `gemma2:9b` (Google's instruct-tuned model), or `mistral:7b` (fast, good general purpose). For coding tasks, use `qwen2.5-coder:7b` (excellent code completion), `codellama:13b` (Meta's code model), or `deepseek-coder-v2:16b` (very strong for complex tasks). For small/fast on systems under 8GB RAM, try `llama3.2:1b` (tiny but capable), `llama3.2:3b` (good balance for low RAM), or `phi3:mini` (Microsoft compact).
+For general chat, try `llama3.1:8b` (best balance of speed and quality), `gemma2:9b` (Google's instruct-tuned model), or `mistral:7b` (fast, good general purpose).
+
+For **reasoning/thinking** tasks (multi-step problems, complex analysis), try `qwen3:8b` — this is a "thinking model" that internally reasons before responding. The AlphaBridge Copilot extension displays the thinking as a **collapsible section** above the answer.
+
+For coding tasks, use `qwen2.5-coder:7b` (excellent code completion), `codellama:13b` (Meta's code model), or `deepseek-coder-v2:16b` (very strong for complex tasks).
+
+For small/fast on systems under 8GB RAM, try `llama3.2:1b` (tiny but capable), `llama3.2:3b` (good balance for low RAM), or `phi3:mini` (Microsoft compact).
 
 For image generation on 6GB VRAM, DreamShaper 8 is the best all-around recommendation. Realistic Vision V6.0 is great for photorealism. SD Turbo is very fast and needs fewer steps. Stable Diffusion 1.5 is the vanilla baseline.
 
@@ -300,8 +331,6 @@ Use `Main menu → [4] Start Chat Server` or just double-click `start_chat.bat` 
 │ 💬 Chat 1      ├──────────────────────────────────────────────┤
 │ 💬 Chat 2      │                                              │
 │ 💬 Chat 3      │   Conversation goes here                     │
-│                │                                              │
-│                │                                              │
 │                │                                              │
 │                │                                          [↓] │
 │                ├──────────────────────────────────────────────┤
@@ -415,18 +444,328 @@ If you see a `cudart64_12.dll not found` popup, you have the wrong SD.cpp build.
 
 The current server enforces several request limits for stability:
 
-- Chat: maximum 80 messages per request, 8,000 characters per message, and 50,000 characters total
+- Chat: maximum 80 messages per request, 60,000 characters per message, and 200,000 characters total
 - Image prompts: 2,000 characters max for prompt and negative prompt
 - Image dimensions: 256-1024 per side
 - Image steps: 1-100
 - Image CFG: 1-20
-These limits are designed to prevent accidental lockups and unbounded queue growth on local machines.
+
+These limits are designed to prevent accidental lockups and unbounded queue growth on local machines. The chat limits were increased over earlier builds to comfortably support attaching medium-sized files from the AlphaBridge Copilot VS Code extension. If you regularly attach very large files, you can raise these further by editing the constants at the top of `chat_server.py`:
+
+```python
+MAX_CHAT_MESSAGES = 80
+MAX_CHAT_TOTAL_CHARS = 200000
+MAX_CHAT_MESSAGE_CHARS = 60000
+```
+
+---
+
+## AlphaBridge Copilot (VS Code Extension)
+
+AlphaBridge Copilot is the native VS Code integration for AlphaInference. It gives you a **Copilot-style sidebar**, a **chat panel** with file/folder attachments, and support for **thinking models** (Qwen3, DeepSeek-R1) with collapsible reasoning blocks — all backed by your local Ollama models.
+
+### Feature Overview
+
+| Feature | Description |
+|---|---|
+| Activity bar icon | Dedicated 🅰 icon in VS Code's left activity bar |
+| Sidebar panel | Server status, model count, quick action buttons |
+| Chat panel | Streaming chat with model selector, stop button, refresh |
+| File attachments | Attach one or many source files as context |
+| Folder attachments | Recursively attach a folder (respects ignore list) |
+| Attach open files | Grab all currently open editor tabs |
+| Right-click integration | Right-click any file or folder in Explorer to attach |
+| Editor context menu | Right-click in editor → Ask About File / Selection / Explain |
+| Thinking model support | Collapsible "💭 Thinking for X.Xs" block above answers |
+| Auto-retry on cold start | Detects Ollama's 404 during model load, waits 8s, retries |
+| Status bar indicator | `$(hubot) Alpha ●` (green) / `○` (offline) in bottom-right |
+| Auto-launch server | Optionally starts `start_chat.bat` when server is down |
+| Debug Output channel | Full request/response logging in a dedicated Output channel |
+| Portable settings | All paths configurable; supports non-admin, portable installs |
+
+### Installing the Pre-Built Extension
+
+If a `.vsix` file is shipped alongside AlphaInference:
+
+```cmd
+cd D:\path\to\alphabridge-vscode
+code --install-extension alphabridge-copilot-<version>.vsix
+```
+
+Fully close and reopen VS Code (not just reload window — the activity bar container is registered once at startup).
+
+### Building the Extension from Source
+
+Prerequisites: **Node.js LTS** installed from `nodejs.org`. Verify:
+
+```cmd
+node --version
+npm --version
+```
+
+Then in the `alphabridge-vscode/` folder:
+
+```cmd
+cd D:\path\to\AlphaInference-Local-LLM\alphabridge-vscode
+npm install
+npm run compile
+npx vsce package
+code --install-extension alphabridge-copilot-<version>.vsix
+```
+
+If `vsce` isn't found, install once globally: `npm install -g @vscode/vsce`. Or use `npx vsce package` which doesn't need a global install.
+
+To develop with hot-reload:
+
+```cmd
+npm run watch
+```
+
+Then press **F5** inside VS Code to launch the Extension Development Host.
+
+### Required Settings
+
+Open `Ctrl+Shift+P → Open User Settings (JSON)` and add:
+
+```json
+{
+  "alphabridge.alphaInferencePath": "E:\\AlphaInference",
+  "alphabridge.serverUrl": "http://127.0.0.1:5000",
+  "alphabridge.defaultModel": "Meta-Llama-3-1-8B-Instruct-Q4-K-M:latest",
+  "alphabridge.maxFileLines": 500,
+  "alphabridge.maxFileSize": 100000,
+  "alphabridge.autoLaunch": false
+}
+```
+
+| Setting | Purpose |
+|---|---|
+| `alphaInferencePath` | Full path to your AlphaInference folder (double backslashes on Windows). Used to locate `start_chat.bat` for auto-launch. |
+| `serverUrl` | Flask server URL. Default `http://127.0.0.1:5000`. Change if you set `ALPHA_SERVER_PORT`. |
+| `defaultModel` | Model to use by default. **Must exactly match** what `ollama.exe list` shows, including `:latest`. |
+| `maxFileLines` | Cap on lines per attached file (default 500). Prevents massive files from blowing past context limits. |
+| `maxFileSize` | Max bytes per file (default 100 KB). Larger files are skipped with a warning. |
+| `autoLaunch` | If `true`, extension will spawn `start_chat.bat` when a command is used and the server isn't running. If `false`, it prompts you first. |
+
+### UI Layout
+
+**Activity bar sidebar** (click the 🅰 icon):
+
+```
+┌────────────────────────────────┐
+│ ● Server running               │
+│   2 models available           │
+├────────────────────────────────┤
+│   💬 Open Chat Panel           │
+├────────────────────────────────┤
+│ CURRENT FILE                   │
+│ 📄 Ask about this file         │
+├────────────────────────────────┤
+│ ATTACH CONTEXT                 │
+│ 📎 Attach files                │
+│ 📁 Attach folder               │
+│ 📋 Attach open files           │
+├────────────────────────────────┤
+│ Tip: right-click a file or     │
+│ folder in the Explorer...      │
+└────────────────────────────────┘
+```
+
+**Chat panel** (opens beside the editor):
+
+```
+┌─────────────────────────────────────────────────────┐
+│ ● [Meta-Llama-3-1-8B-Instruct-Q4-K-M:latest ▾] ⏹ ⟳ Clear │
+├─────────────────────────────────────────────────────┤
+│ YOU                                                 │
+│ ┌─ Attached context ──────────────────────────┐    │
+│ │ 📎 Guide.md (926 lines)                     │    │
+│ │ 📁 src/ (12 files)                          │    │
+│ └─────────────────────────────────────────────┘    │
+│ Explain the setup steps                             │
+│                                                     │
+│ ALPHABRIDGE                                         │
+│ ▶ 💭 Thinking for 3.2s          (click to expand)  │
+│ ────────────────────────────────────────────       │
+│ The setup consists of 3 phases: first...           │
+│                                                     │
+├─────────────────────────────────────────────────────┤
+│ [📎 File] [📁 Folder] [📋 Open Files]              │
+│ [Ask a question ................] [Send ▶]        │
+└─────────────────────────────────────────────────────┘
+```
+
+### Attaching Context
+
+There are four ways to attach files or folders to a chat message:
+
+**1. Sidebar buttons** — click 📎 File, 📁 Folder, or 📋 Open Files.
+
+**2. Chat panel buttons** — same three buttons available at the bottom of the panel.
+
+**3. Right-click in Explorer** — right-click any file → **AlphaBridge: Ask About This File**. Right-click any folder → **AlphaBridge: Attach Folder to Chat**.
+
+**4. Right-click in editor** — for the active file or selection:
+- **AlphaBridge: Ask About This File** — sends the whole file
+- **AlphaBridge: Ask About Selection** — sends just the highlighted text
+- **AlphaBridge: Explain This Code** — one-click explanation of selection
+
+Attachments appear as **chips** in the panel:
+
+```
+📎 server.py (245 lines) ✕
+📎 utils/helpers.py (89 lines) ✕
+📁 src/components/ (4 files) ✕
+```
+
+Click the ✕ to remove one before sending. Chips clear automatically after sending.
+
+### Folder Attachment Rules
+
+When you attach a folder, the extension walks it recursively (up to 3 levels deep, max 20 files) and skips:
+
+- Non-code files (only these extensions are read: `.ts`, `.tsx`, `.js`, `.jsx`, `.py`, `.java`, `.c`, `.cpp`, `.h`, `.hpp`, `.cs`, `.go`, `.rs`, `.rb`, `.php`, `.swift`, `.dart`, `.lua`, `.sql`, `.sh`, `.bat`, `.ps1`, `.html`, `.css`, `.scss`, `.json`, `.yaml`, `.yml`, `.toml`, `.xml`, `.md`, `.vue`, `.svelte`, etc.)
+- Files larger than 1 MB
+- Common junk directories: `node_modules`, `.git`, `__pycache__`, `.vscode`, `dist`, `build`, `out`, `vendor`, `venv`, `.next`, `.nuxt`, `.idea`, `.vs`, `bin`, `obj`, `coverage`, `.cache`, `.parcel-cache`
+- Lockfiles: `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `.DS_Store`, `Thumbs.db`
+
+If files are skipped due to the 20-file cap, the chip shows `(+N skipped)`.
+
+### Thinking Models (Qwen3, DeepSeek-R1, etc.)
+
+When you use a reasoning model that streams `thinking` tokens separately from `content` tokens, the panel shows a **collapsible thinking block** above the answer:
+
+```
+ALPHABRIDGE
+▶ 💭 Thinking for 5.7s              ← collapsed by default
+────────────────────────────────
+The setup consists of 3 phases...
+```
+
+Click the header to expand:
+
+```
+ALPHABRIDGE
+▼ 💭 Thinking for 5.7s
+┌────────────────────────────────────────┐
+│ Analyze the Request:                   │
+│  * Task: Explain setup steps           │
+│  * Source: Guide.md attached           │
+│                                        │
+│ Evaluate Approach:                     │
+│  * Should structure as ordered steps   │
+│  * Keep concise, reference sections    │
+│ ...                                    │
+└────────────────────────────────────────┘
+────────────────────────────────────────
+The setup consists of 3 phases...
+```
+
+While thinking is streaming, the block auto-expands so you can watch the reasoning appear live. When the model transitions to the final answer, the block auto-collapses to `💭 Thinking for X.Xs`. Click the Copy button on the bubble to copy **only** the answer (not the thinking).
+
+Non-thinking models (Llama, Mistral, Gemma, etc.) never show a thinking block — they just stream the answer directly.
+
+### Auto-Retry on Cold Model Load
+
+Ollama returns `404 Not Found` for the first `/api/chat` request against a model that isn't yet in VRAM (a known Ollama quirk during model load). The extension detects this and shows:
+
+```
+⏳ Model is loading, please wait...
+```
+
+It then waits 8 seconds and retries automatically. Subsequent requests succeed instantly because the model is now warm.
+
+To avoid the cold-start delay entirely, pre-warm your default model in `start_chat.bat` by adding after Ollama starts:
+
+```batch
+:: Pre-warm default model
+curl.exe -s -X POST http://127.0.0.1:11434/api/generate ^
+  -H "Content-Type: application/json" ^
+  -d "{\"model\":\"llama3.1:8b\",\"prompt\":\"hi\",\"stream\":false}" >nul 2>&1
+```
+
+### Debug Output Channel
+
+The extension writes detailed logs to a dedicated Output channel. To see them:
+
+```
+View → Output → dropdown (top-right) → "AlphaBridge"
+```
+
+You'll see entries like:
+
+```
+[19:04:15.515] SEND MESSAGES (from command)
+{
+  "messageCount": 2,
+  "messages": [
+    { "role": "system", "contentLength": 125, "contentPreview": "..." },
+    { "role": "user",   "contentLength": 24616, "contentPreview": "explain\n\n---\n\n**Context:**\n\n### File: Guide.md..." }
+  ]
+}
+
+[19:04:15.677] STREAM START
+{ "model": "...", "messageCount": 2, "totalChars": 24741 }
+
+[19:04:17.234] FIRST TOKEN
+{ "afterMs": 1557, "preview": "The setup consists of..." }
+
+[19:04:22.891] STREAM END
+{ "thinkingTokens": 0, "contentTokens": 187, "totalMs": 7214 }
+```
+
+If something goes wrong, this channel is the first place to look. Errors also render as `⚠️` messages inline in the chat bubble with full detail.
+
+### Available Commands
+
+All commands are available via `Ctrl+Shift+P → AlphaBridge: <command>`:
+
+| Command | What it does |
+|---|---|
+| `AlphaBridge: Open Chat Panel` | Opens (or focuses) the chat panel beside the editor |
+| `AlphaBridge: Ask About This File` | Prompts for a question, sends entire active file as context |
+| `AlphaBridge: Ask About Selection` | Prompts for a question, sends only the selected text |
+| `AlphaBridge: Explain This Code` | One-click: explains selection (or whole file if no selection) |
+| `AlphaBridge: Attach Files to Chat` | Opens file picker, adds to panel as chips |
+| `AlphaBridge: Attach Folder to Chat` | Opens folder picker, adds recursive contents |
+| `AlphaBridge: Attach All Open Files` | Grabs currently open editor tabs (up to 8) |
+
+Right-click menus in the editor and Explorer contribute the file/folder variants.
+
+### Serialization and Message Format
+
+When you attach context and then send a question, the extension builds a **single user message** that combines both — this matters because some instruction-tuned models handle interleaved system/user/user turns poorly. The format is:
+
+```
+{your question}
+
+---
+
+**Context:**
+
+### File: name.py (245 lines)
+```python
+{file content}
+```
+
+### File: helpers.py (89 lines)
+```python
+{file content}
+```
+```
+
+The system prompt adapts to the content:
+
+- If any attached file is code → "You are an expert developer skilled in {languages}..."
+- If everything is docs (markdown/plaintext) → "You are a helpful assistant..."
+
+This adaptive prompting is why the model correctly answers about markdown documents (which it would otherwise treat as code to review).
 
 ---
 
 ## VS Code Integration (Continue)
 
-The Continue extension can use your local Ollama for chat, code completion, and refactoring.
+The [Continue](https://continue.dev) extension is an alternative to AlphaBridge Copilot. It can use your local Ollama for chat, code completion, and refactoring. Use it if you prefer Continue's inline-completion UX or want tab-driven autocomplete alongside the AlphaBridge chat panel.
 
 ### Setup
 
@@ -476,7 +815,9 @@ context:
 
 ### Key Points
 
-Do NOT use port 5000 (that's your Flask UI). DO use port 11434 (that's Ollama's API). Wrong: `apiBase: http://127.0.0.1:5000/api`. Correct: `apiBase: http://127.0.0.1:11434`. The model name must EXACTLY match `ollama list` output, including any `:latest` or `:8b` suffix.
+Do NOT use port 5000 for Continue (that's your Flask UI). DO use port 11434 (that's Ollama's API). Wrong: `apiBase: http://127.0.0.1:5000/api`. Correct: `apiBase: http://127.0.0.1:11434`. The model name must EXACTLY match `ollama list` output, including any `:latest` or `:8b` suffix.
+
+**Difference from AlphaBridge Copilot:** Continue talks directly to Ollama and bypasses the Flask server. AlphaBridge Copilot talks to Flask on port 5000, which handles queuing, model management, chat history, and stats. Use AlphaBridge Copilot for a unified experience with the browser UI; use Continue if you want tab-autocomplete or its specific workflow features. Both can run at the same time.
 
 ### Verify Model Names
 
@@ -526,13 +867,18 @@ Another program is using port 5000. Find what's using it:
 netstat -ano | findstr ":5000"
 ```
 
-You'll see a PID. Kill that process or change the port. To change the port, edit `chat_server.py`:
+You'll see a PID. Kill that process or change the port. To change the port, set the env var before starting:
 
-```python
-SERVER_PORT = 5000   # ← change to 5001 or any free port
+```bat
+set ALPHA_SERVER_PORT=5001
+start_chat.bat
 ```
 
-Remember to access it at `http://127.0.0.1:NEW_PORT`.
+Then also update your VS Code extension setting:
+
+```json
+"alphabridge.serverUrl": "http://127.0.0.1:5001"
+```
 
 ### sd.exe / sd-cli.exe missing CUDA DLLs
 
@@ -544,13 +890,83 @@ Alternatively, download manually from `https://github.com/leejet/stable-diffusio
 
 Ollama model names cannot have spaces. Fix: use `my-model` ✓ or `my_model` ✓, not `My Model 1B` ✗ (will fail). The `install.bat` now auto-sanitizes spaces to hyphens, but type without spaces from the start to be safe.
 
-### "Model not found" in Continue
+### "Model not found" in Continue or AlphaBridge Copilot
 
-The name in your config doesn't match what Ollama has. Run `vendor\ollama\ollama.exe list`. Copy the EXACT name including any `:tag` suffix. Update your Continue config:
+The name in your config/settings doesn't match what Ollama has. Run `vendor\ollama\ollama.exe list`. Copy the EXACT name including any `:tag` suffix.
 
+For Continue, update `~/.continue/config.yaml`:
 ```yaml
 model: llama3.1:8b        # must match exactly, including the :8b part
 ```
+
+For AlphaBridge Copilot, update VS Code settings:
+```json
+"alphabridge.defaultModel": "llama3.1:8b"
+```
+
+### AlphaBridge Copilot: sidebar is empty
+
+Extension activated but the sidebar view didn't register. Common causes:
+
+1. **Extension not fully installed.** Fully close all VS Code windows, then reinstall:
+   ```cmd
+   code --uninstall-extension alphabridge.alphabridge-copilot
+   code --install-extension alphabridge-copilot-<version>.vsix
+   code
+   ```
+
+2. **Cached old extension folder.** Nuke it:
+   ```cmd
+   for /d %i in ("%USERPROFILE%\.vscode\extensions\alphabridge*") do rmdir /s /q "%i"
+   ```
+   Then reinstall.
+
+3. **`sidebar.ts` not imported in `extension.ts`.** If building from source, make sure `extension.ts` has `import { AlphaBridgeSidebar } from './sidebar';` and registers it via `vscode.window.registerWebviewViewProvider(...)`.
+
+4. **Diagnose live:** right-click inside the empty sidebar → **Open Webview Developer Tools** → check Console for errors.
+
+### AlphaBridge Copilot: 404 error on first request
+
+Message shows `⚠️ 404 Client Error: Not Found for url: http://127.0.0.1:11434/api/chat`. This is Ollama's cold-start quirk during model load. Recent extension versions auto-retry after 8 seconds. If you see this repeatedly:
+
+- Verify the model exists: `vendor\ollama\ollama.exe list` should show your selected model
+- Pre-warm the model (see [Auto-Retry on Cold Model Load](#auto-retry-on-cold-model-load))
+- Or manually pull once: `ollama.exe run llama3.1:8b "hi"` — then close
+
+### AlphaBridge Copilot: stream ends immediately with 0 tokens
+
+Usually means the request failed on the server side. Check:
+
+1. Open Output panel → dropdown → **AlphaBridge** — the log entry will show HTTP status and any error body.
+2. Alt-tab to the `start_chat.bat` cmd window when clicking Send — Flask prints request logs and any Python tracebacks.
+3. Test the server directly with curl to isolate whether it's the extension or the server:
+   ```cmd
+   curl -N -X POST http://127.0.0.1:5000/api/chat -H "Content-Type: application/json" ^
+     -d "{\"model\":\"YOUR-MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}"
+   ```
+
+### AlphaBridge Copilot: "history.push is not a function"
+
+You're seeing an old cached webview. The bug (a variable shadowing `window.history`) was fixed by renaming to `convoHistory`. Force a clean reinstall:
+
+```cmd
+taskkill /f /im Code.exe
+for /d %i in ("%USERPROFILE%\.vscode\extensions\alphabridge*") do rmdir /s /q "%i"
+code --install-extension alphabridge-copilot-<version>.vsix
+```
+
+### AlphaBridge Copilot: attached file too large
+
+Server rejects messages over 60,000 chars per message or 200,000 total. Solutions:
+
+1. **Reduce lines** in extension setting: `"alphabridge.maxFileLines": 200`
+2. **Attach fewer files** at once
+3. **Increase server limits** in `chat_server.py`:
+   ```python
+   MAX_CHAT_MESSAGE_CHARS = 120000
+   MAX_CHAT_TOTAL_CHARS = 400000
+   ```
+   Restart `start_chat.bat` after editing.
 
 ### HuggingFace download starts from 0 after refresh
 
@@ -605,9 +1021,11 @@ First check the file was actually created: `dir generated_images\*.png`. If the 
 
 ### Move to USB Drive / Different PC
 
-The entire setup is portable. Copy the whole folder (`AlphaInference/`) to a USB drive. On the new PC, just run `start_chat.bat` from the USB.
+The entire AlphaInference setup is portable. Copy the whole folder (`AlphaInference/`) to a USB drive. On the new PC, just run `start_chat.bat` from the USB.
 
 This works because all paths are relative to the script location. Ollama models are stored in `models\ollama` (not the user profile). The `OLLAMA_MODELS` env var is set by `start_chat.bat`. Python is embedded, so no system Python needed.
+
+The AlphaBridge Copilot VS Code extension itself installs per-user (into `%USERPROFILE%\.vscode\extensions`), so on the new machine you'll need to reinstall it via `code --install-extension` and update `alphabridge.alphaInferencePath` to the new location.
 
 Size estimates: minimum (no models) ~250 MB. With a small chat model ~3 GB. With full setup 10-50 GB.
 
@@ -620,7 +1038,7 @@ set ALPHA_SERVER_PORT=5001
 start_chat.bat
 ```
 
-Or set it permanently in your shell/profile scripts. The UI uses relative URLs, so no `chatUI.html` edits are needed.
+Or set it permanently in your shell/profile scripts. The UI uses relative URLs, so no `chatUI.html` edits are needed. For the AlphaBridge Copilot extension, update `alphabridge.serverUrl` in VS Code settings to match.
 
 ### Access from Other Devices on Your Network
 
@@ -644,6 +1062,8 @@ For locked-down laptops and non-admin users, use these startup knobs:
 - Force restart Ollama only when needed for portable model store routing: `set ALPHA_RESTART_OLLAMA=1`
 
 The scripts now prefer `powershell.exe`, then `pwsh.exe`, and gracefully fall back to legacy methods (`wmic`, `ipconfig`) when PowerShell is restricted.
+
+The AlphaBridge Copilot extension also runs without admin rights — it only installs into your user profile and only makes outbound HTTP calls to `127.0.0.1`.
 
 ### Multiple Chat Models Loaded
 
@@ -685,7 +1105,7 @@ The UI can send a `system` field but currently doesn't. To add a system prompt g
 payload["system"] = "You are a helpful expert programmer..."
 ```
 
-Or add a UI field in `chatUI.html` for per-conversation system prompts.
+For per-conversation prompts in the AlphaBridge Copilot extension, edit `src/contextBuilder.ts` — the `fromFile`, `fromSelection`, and `fromAttachments` methods build system prompts that adapt based on file type. You can add custom personas there.
 
 ### Add More Recommended Models
 
@@ -716,23 +1136,29 @@ if "!SEL!"=="MY_MODEL" (
 
 ### Backup Your Setup
 
-Back up these directories: `chat_history/` (your conversations), `generated_images/` (your AI images), `models/image/` (downloaded SD models), `models/ollama/` (downloaded chat models).
+Back up these directories: `chat_history/` (your conversations), `generated_images/` (your AI images), `models/image/` (downloaded SD models), `models/ollama/` (downloaded chat models), `alphabridge-vscode/` (extension source if you modified it).
 
-You can re-download these if needed: `vendor/` (Python, Ollama, SD binaries), `vendor/temp/` (scratch files), `vendor/hf_cache/` (HuggingFace cache).
+You can re-download these if needed: `vendor/` (Python, Ollama, SD binaries), `vendor/temp/` (scratch files), `vendor/hf_cache/` (HuggingFace cache), `alphabridge-vscode/node_modules/` and `alphabridge-vscode/out/` (extension build artifacts — regenerate with `npm install` and `npm run compile`).
 
 A 7-Zip archive of the folder is the easiest backup.
 
 ### Reset Everything
 
-Navigate to `Main menu → [3] Uninstall / Remove Models → [4] Full Cleanup`. This removes all Ollama chat models, all image models, all temp/cache files, all generated images, all chat history, and partial downloads. It keeps `vendor/` (Python, Ollama, SD) and your 4 source files.
+Navigate to `Main menu → [3] Uninstall / Remove Models → [4] Full Cleanup`. This removes all Ollama chat models, all image models, all temp/cache files, all generated images, all chat history, and partial downloads. It keeps `vendor/` (Python, Ollama, SD) and your source files.
 
-To completely start over: just delete the entire folder, re-create with the 4 source files, and run `install.bat`.
+To also remove the VS Code extension:
+
+```cmd
+code --uninstall-extension alphabridge.alphabridge-copilot
+```
+
+To completely start over: just delete the entire folder, re-create with the source files, and run `install.bat`.
 
 ---
 
 ## Architecture Reference
 
-### Data Flow: Chat Message
+### Data Flow: Chat Message (Browser UI)
 
 ```
 USER TYPES "Hello"
@@ -773,6 +1199,40 @@ Ollama: sees closed socket, stops generating
    │ Frees GPU immediately
    ▼
 NO WASTED COMPUTE
+```
+
+### Data Flow: Chat Message (AlphaBridge Copilot Extension)
+
+```
+USER: right-click file → "Ask About This File" → types "explain"
+   │
+   ▼
+extension.ts command handler
+   │ ContextBuilder.fromFile(editor) → [{system}, {user with file}]
+   │ ContextBuilder.withTask(messages, "explain") → merges task + file
+   ▼
+ChatPanel.sendMessages(messages)
+   │ webview.postMessage({command:'injectMessages', messages}) → renders context bubble
+   │ chatStream(messages, callbacks)
+   ▼
+api.ts chatStream()
+   │ POST http://127.0.0.1:5000/api/chat {model, messages}
+   │ (auto-retries once after 8s if 404 during model load)
+   ▼
+Flask: same as browser flow above
+   │ Ollama streams SSE
+   ▼
+api.ts stream parser
+   │ Splits by \n, strips "data:" prefix
+   │ Detects message.thinking → onThinking() callback
+   │ Detects message.content  → onContent()  callback
+   ▼
+Panel webview receives:
+   │ 'thinkingToken' → renders inside collapsible thinking-block
+   │ 'contentToken'  → renders in assistant-content div
+   │ 'thinkingDone'  → collapses thinking block with duration
+   ▼
+USER SEES streaming with collapsible reasoning
 ```
 
 ### Data Flow: Image Generation
@@ -833,7 +1293,7 @@ DURING THIS, OTHER REQUESTS WORK:
 
 ```
 Flask Thread Pool (default size)
-├── Thread 1: serves /api/chat streaming
+├── Thread 1: serves /api/chat streaming        ← browser AND VS Code extension
 ├── Thread 2: serves /api/stats (every 3s)
 ├── Thread 3: serves /api/models
 └── Thread 4: queued for /api/generate-image
@@ -853,11 +1313,32 @@ Locks:
   model_lock       serializes /api/models/load requests
 ```
 
+### VS Code Extension Threading
+
+The extension runs in VS Code's Extension Host process (Node.js). It is single-threaded event loop but uses async/await heavily.
+
+```
+Extension Host (Node.js)
+├── Command handlers (async)
+├── AlphaBridgeSidebar (webview provider)
+├── ChatPanel instance (one at a time)
+│   └── AbortController for cancelling active fetch
+├── AlphaInferenceClient (HTTP client)
+│   └── ReadableStream reader for SSE parsing
+├── Status bar poll (setInterval 10s)
+├── Sidebar refresh (setInterval 10s)
+└── Debug OutputChannel
+
+All webviews communicate via postMessage:
+  Extension → Webview: postMessage({command, ...data})
+  Webview → Extension: acquireVsCodeApi().postMessage({command, ...})
+```
+
 ### File Locations Reference
 
-Portable (moves with the folder): `vendor/python/` (Python embedded distribution), `vendor/ollama/` (Ollama executable), `vendor/stable-diffusion/` (SD.cpp executable + DLL), `vendor/ollama_home/` (Ollama configuration), `models/ollama/` (Ollama model store via env var `OLLAMA_MODELS`), `models/image/` (SD image models), `models/chat/` (GGUF files before Ollama import), `chat_history/` (saved conversations), `generated_images/` (SD output).
+**Portable (moves with the folder):** `vendor/python/` (Python embedded distribution), `vendor/ollama/` (Ollama executable), `vendor/stable-diffusion/` (SD.cpp executable + DLL), `vendor/ollama_home/` (Ollama configuration), `models/ollama/` (Ollama model store via env var `OLLAMA_MODELS`), `models/image/` (SD image models), `models/chat/` (GGUF files before Ollama import), `chat_history/` (saved conversations), `generated_images/` (SD output), `alphabridge-vscode/` (extension source).
 
-Per-machine (won't move): HuggingFace cache (uses `HF_HOME` if set, else default user profile), browser cookies (`localStorage` in browser).
+**Per-machine (won't move):** HuggingFace cache (uses `HF_HOME` if set, else default user profile), browser cookies (`localStorage` in browser), VS Code extension install (`%USERPROFILE%\.vscode\extensions\alphabridge.alphabridge-copilot-*`), VS Code user settings.
 
 ### API Endpoints Reference
 
@@ -865,13 +1346,13 @@ Per-machine (won't move): HuggingFace cache (uses `HF_HOME` if set, else default
 
 **Models**: `GET /api/models` (returns `{chat_models: [...], image_models: [...]}`), `GET /api/models/active` (returns `{active_model: "...", models: [...]}`), `POST /api/models/load` (load model, unloading old one), `POST /api/models/unload` (evict from VRAM).
 
-**Chat**: `POST /api/chat` (streaming SSE response), `POST /api/chat/non-stream` (single JSON response).
+**Chat**: `POST /api/chat` (streaming SSE response — used by both browser UI and VS Code extension), `POST /api/chat/non-stream` (single JSON response).
 
 **Image**: `POST /api/generate-image` (synchronous generation, returns when done), `POST /api/generate-image/cancel` (stop current generation), `GET /api/generate-image/status` (for UI recovery after page refresh), `GET /api/generated-images` (list all PNGs in folder), `DELETE /api/generated-images/<file>` (delete one image).
 
 **History**: `GET /api/history` (list session metadata), `GET /api/history/<id>` (load specific session), `POST /api/history` (save session), `DELETE /api/history/<id>` (delete session).
 
-**System**: `GET /api/system` (backend status), `GET /api/stats` (CPU/RAM/VRAM live stats), `GET /api/health` (ping endpoint).
+**System**: `GET /api/system` (backend status), `GET /api/stats` (CPU/RAM/VRAM live stats), `GET /api/health` (ping endpoint — used by extension for status polling).
 
 ---
 
@@ -889,6 +1370,29 @@ Manually remove a model: `vendor\ollama\ollama.exe rm llama3.1:8b`
 
 Test SD.cpp is working: `vendor\stable-diffusion\sd-cli.exe --help`
 
+Build the VS Code extension:
+```cmd
+cd alphabridge-vscode
+npm install
+npm run compile
+npx vsce package
+```
+
+Install the VS Code extension:
+```cmd
+code --install-extension alphabridge-copilot-<version>.vsix
+```
+
+Uninstall the VS Code extension:
+```cmd
+code --uninstall-extension alphabridge.alphabridge-copilot
+```
+
+Force-clean cached extension folders:
+```cmd
+for /d %i in ("%USERPROFILE%\.vscode\extensions\alphabridge*") do rmdir /s /q "%i"
+```
+
 Check system specs match what install.bat shows:
 
 ```
@@ -899,6 +1403,18 @@ nvidia-smi    # if you have NVIDIA GPU
 ```
 
 Find what's using port 5000: `netstat -ano | findstr ":5000"`
+
+Test the Flask chat endpoint directly:
+```cmd
+curl -N -X POST http://127.0.0.1:5000/api/chat ^
+  -H "Content-Type: application/json" ^
+  -d "{\"model\":\"llama3.1:8b\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}"
+```
+
+Test Ollama directly (bypasses Flask):
+```cmd
+curl http://127.0.0.1:11434/api/tags
+```
 
 Stop everything:
 
@@ -912,15 +1428,14 @@ taskkill /f /im sd-cli.exe
 
 ## License & Credits
 
-This setup uses **Ollama** (MIT) — `github.com/ollama/ollama`, **stable-diffusion.cpp** (MIT) — `github.com/leejet/stable-diffusion.cpp`, **Python embedded** (PSF) — `python.org`, **Flask** (BSD) — `palletsprojects.com/p/flask`, and **HuggingFace Hub** (Apache 2.0) — `huggingface.co`.
+This setup uses **Ollama** (MIT) — `github.com/ollama/ollama`, **stable-diffusion.cpp** (MIT) — `github.com/leejet/stable-diffusion.cpp`, **Python embedded** (PSF) — `python.org`, **Flask** (BSD) — `palletsprojects.com/p/flask`, **HuggingFace Hub** (Apache 2.0) — `huggingface.co`, **Node.js** (MIT) — `nodejs.org` (only needed to build the VS Code extension from source), and the **VS Code Extension API** (MIT) — `code.visualstudio.com/api`.
 
 Models retain their original licenses (check on HuggingFace).
 
-AlphaInference, this documentation, and the portable integration layer shipped by AlphaBridge IT Solution™ are intended as a practical offline deployment bundle around those upstream components.
+AlphaInference, the AlphaBridge Copilot VS Code extension, this documentation, and the portable integration layer shipped by AlphaBridge IT Solution™ are intended as a practical offline deployment bundle around those upstream components.
 
 This documentation and the wrapper scripts: use however you like.
 
 ---
 
-**End of guide.** Save this file as `README.md` in your AlphaInference folder for offline reference. For AlphaBridge IT Solution™ deployment support and specific errors not covered above, run `install.bat` from an open cmd window to see error messages before the window closes.
-````
+**End of guide.** Save this file as `README.md` in your AlphaInference folder for offline reference. For AlphaBridge IT Solution™ deployment support and specific errors not covered above, run `install.bat` from an open cmd window to see error messages before the window closes, or open the **AlphaBridge** Output channel in VS Code to see extension-side logs.

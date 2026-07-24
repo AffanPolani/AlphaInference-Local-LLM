@@ -1,0 +1,173 @@
+{
+  "name": "alphabridge-copilot",
+  "displayName": "AlphaBridge Copilot",
+  "description": "Local AI assistant powered by AlphaInference",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/placeholder/alphabridge-copilot"
+  },
+  "version": "0.2.1",
+  "publisher": "alphabridge",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "activationEvents": [
+  "onStartupFinished"
+],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "alphabridge",
+          "title": "AlphaBridge Copilot",
+          "icon": "media/alpha-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "alphabridge": [
+        {
+          "id": "alphabridge.sidebar",
+          "name": "AlphaBridge",
+          "type": "webview",
+          "icon": "media/alpha-icon.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "alphabridge.openChat",
+        "title": "Open Chat Panel",
+        "category": "AlphaBridge",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "alphabridge.askAboutFile",
+        "title": "Ask About This File",
+        "category": "AlphaBridge",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "alphabridge.askAboutSelection",
+        "title": "Ask About Selection",
+        "category": "AlphaBridge",
+        "icon": "$(selection)"
+      },
+      {
+        "command": "alphabridge.explainCode",
+        "title": "Explain This Code",
+        "category": "AlphaBridge",
+        "icon": "$(book)"
+      },
+      {
+        "command": "alphabridge.attachFiles",
+        "title": "Attach Files to Chat",
+        "category": "AlphaBridge",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "alphabridge.attachFolder",
+        "title": "Attach Folder to Chat",
+        "category": "AlphaBridge",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "alphabridge.attachOpenFiles",
+        "title": "Attach All Open Files",
+        "category": "AlphaBridge",
+        "icon": "$(files)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "alphabridge.openChat",
+          "when": "view == alphabridge.sidebar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "alphabridge.attachOpenFiles",
+          "when": "view == alphabridge.sidebar",
+          "group": "navigation@2"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "alphabridge.askAboutSelection",
+          "when": "editorHasSelection",
+          "group": "alphabridge@1"
+        },
+        {
+          "command": "alphabridge.askAboutFile",
+          "group": "alphabridge@2"
+        },
+        {
+          "command": "alphabridge.explainCode",
+          "when": "editorHasSelection",
+          "group": "alphabridge@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "alphabridge.askAboutFile",
+          "when": "!explorerResourceIsFolder",
+          "group": "alphabridge@1"
+        },
+        {
+          "command": "alphabridge.attachFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "alphabridge@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AlphaBridge Copilot",
+      "properties": {
+        "alphabridge.serverUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:5000",
+          "description": "AlphaInference Flask server URL"
+        },
+        "alphabridge.alphaInferencePath": {
+          "type": "string",
+          "default": "",
+          "description": "Full path to your AlphaInference folder e.g. E:\\AlphaInference"
+        },
+        "alphabridge.defaultModel": {
+          "type": "string",
+          "default": "llama3.1:8b",
+          "description": "Default chat model - must match ollama list output"
+        },
+        "alphabridge.maxFileLines": {
+          "type": "number",
+          "default": 150,
+          "description": "Max lines per file when attaching"
+        },
+        "alphabridge.maxFileSize": {
+          "type": "number",
+          "default": 100000,
+          "description": "Max file size in bytes (default 100KB)"
+        },
+        "alphabridge.autoLaunch": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-launch start_chat.bat when server is not running"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

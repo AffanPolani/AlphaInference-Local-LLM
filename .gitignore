@@ -38,11 +38,16 @@ __pycache__/
 # Runtime/generated application data
 chat_history/
 generated_images/
-
-# Heavy runtimes and model assets
+alphabridge-vscode/node_modules
+alphabridge-vscode/out
+alphabridge-vscode/package-lock.json
+*.vsix
+# Heavy runtimes and model assets/Extention Related Files
 vendor/
 models/
 ollama/
+
+
 
 # Optional local build/cache folders
 temp/
